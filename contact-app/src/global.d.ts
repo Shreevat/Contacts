@@ -23,3 +23,7 @@ declare module 'js-cookie' {
   const Cookies: CookiesStatic;
   export default Cookies;
 }
+
+declare module '@heroicons/react/solid' {
+  export * from '@heroicons/react';
+}

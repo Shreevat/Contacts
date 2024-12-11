@@ -17,13 +17,12 @@ const ContactsPage: React.FC = () => {
   const [newContact, setNewContact] = useState({
     name: "",
     email: "",
-    phone: "",
+    phone: "",  
   });
   const [showForm, setShowForm] = useState(false); // Toggle for add form
   const navigate = useNavigate();
   const location = useLocation(); // Use location hook to access state
 
-  // Check if the 'showForm' state is passed
   useEffect(() => {
     if (location.state?.showForm) {
       setShowForm(true); // If showForm is true in state, show the form

@@ -20,6 +20,9 @@ const Sidebar: React.FC = () => {
         <Link to="/contacts" className="block py-2 px-4 hover:bg-gray-700">
           Contacts
         </Link>
+        <Link to="/notes" className="block py-2 px-4 hover:bg-gray-700">
+          Notes
+        </Link>
         <button
           onClick={handleLogout}
           className="w-full py-2 px-4 bg-red-600 rounded-md"

@@ -4,14 +4,26 @@ import axios from "../api/apiClient"; // Axios instance
 
 const DashboardPage: React.FC = () => {
   const [contactsCount, setContactsCount] = useState<number>(0);
+  const [notesCount, setNotesCount] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate(); // Initialize navigate
 
   useEffect(() => {
     const fetchContactsCount = async () => {
       try {
-        const response = await axios.get("/contacts"); // Fetch all contacts
-        setContactsCount(response.data.length); // Update count with the total number of contacts
+        const response = await axios.get("/contacts");
+        setContactsCount(response.data.length); 
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "An unexpected error occurred";
+        setError(errorMessage);
+      }
+    };
+
+    const fetchNotesCount = async () => {
+      try {
+        const response = await axios.get("/notes");
+        setNotesCount(response.data.length); 
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "An unexpected error occurred";
@@ -20,10 +32,13 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchContactsCount();
+    fetchNotesCount();
   }, []);
 
+  
+
   const handleNavigateToContacts = () => {
-    navigate("/contacts", { state: { showForm: true } }); // Pass state to show the Add Contact form
+    navigate("/contacts", { state: { showForm: true } }); 
   };
 
   return (
@@ -42,8 +57,8 @@ const DashboardPage: React.FC = () => {
           )}
         </div>
         <div className="bg-green-100 p-4 rounded-lg shadow-lg text-center">
-          <h2 className="text-2xl font-semibold">Recent Logins</h2>
-          <p className="text-xl">5 Users</p>
+          <h2 className="text-2xl font-semibold">Notes</h2>
+          <p className="text-xl">{notesCount}</p>
         </div>
         <div className="bg-yellow-100 p-4 rounded-lg shadow-lg text-center">
           <h2 className="text-2xl font-semibold">Pending Tasks</h2>
@@ -56,7 +71,7 @@ const DashboardPage: React.FC = () => {
           <h2 className="text-xl font-semibold">Add Contact</h2>
           <p>Click to add a new contact.</p>
           <button
-            onClick={handleNavigateToContacts} // Navigate to ContactsPage with state
+            onClick={handleNavigateToContacts} 
             className="mt-4 py-2 px-4 bg-blue-600 text-white rounded-lg"
           >
             Add Contact
@@ -66,7 +81,7 @@ const DashboardPage: React.FC = () => {
           <h2 className="text-xl font-semibold">View All Contacts</h2>
           <p>See a list of all your contacts.</p>
           <button
-            onClick={() => navigate("/contacts")} // Just navigate to ContactsPage without state
+            onClick={() => navigate("/contacts")} 
             className="mt-4 py-2 px-4 bg-blue-600 text-white rounded-lg"
           >
             View Contacts

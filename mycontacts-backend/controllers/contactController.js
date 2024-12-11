@@ -1,4 +1,3 @@
-const { get } = require("../routes/contactRoutes");
 const asyncHandler = require("express-async-handler");
 const Contact = require("../models/contactModel"); //importing the model
 
