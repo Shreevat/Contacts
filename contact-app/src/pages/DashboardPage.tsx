@@ -8,7 +8,6 @@ const DashboardPage: React.FC = () => {
   const [notesCount, setNotesCount] = useState<number>(0);
   const [latestContact, setLatestContact] = useState<string | null>(null);
 
-  // Initialize state from cookies or default to 0
   const [sessionContactsCount, setSessionContactsCount] = useState<number>(
     Number(Cookies.get("sessionContactsCount")) || 0
   );
@@ -59,46 +58,28 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     if (location.state?.contactAdded) {
-      setSessionContactsCount((prevCount) => {
-        const newCount = prevCount + 1;
-        Cookies.set("sessionContactsCount", String(newCount));
-        return newCount;
-      });
+      // Increase the session count when a contact is added
+      const newCount = sessionContactsCount + 1;
+      setSessionContactsCount(newCount);
+      Cookies.set("sessionContactsCount", String(newCount)); // Ensure it's saved in cookies
     }
 
     if (location.state?.noteAdded) {
-      setSessionNotesCount((prevCount) => {
-        const newCount = prevCount + 1;
-        Cookies.set("sessionNotesCount", String(newCount));
-        return newCount;
-      });
+      const newCount = sessionNotesCount + 1;
+      setSessionNotesCount(newCount);
+      Cookies.set("sessionNotesCount", String(newCount));
     }
 
     // Clear navigation state after processing
-    if (location.state) {
-      navigate(".", { replace: true, state: null });
-    }
-  }, [location.state, navigate]);
+    navigate(".", { replace: true, state: null });
+  }, [location.state, sessionContactsCount, sessionNotesCount, navigate]);
 
   const handleAddContact = () => {
-    navigate("/contacts", { state: { showForm: true } });
+    navigate("/contacts", { state: { showForm: true, contactAdded: true } });
   };
 
   const handleAddNote = () => {
     navigate("/notes", { state: { showForm: true } });
-  };
-
-  const handleLogout = () => {
-    // Clear session cookies
-    Cookies.remove("sessionContactsCount");
-    Cookies.remove("sessionNotesCount");
-
-    // Reset state counts to zero
-    setSessionContactsCount(0);
-    setSessionNotesCount(0);
-
-    // Navigate to login
-    navigate("/login");
   };
 
   return (
@@ -120,11 +101,11 @@ const DashboardPage: React.FC = () => {
         </div>
         <div className="bg-yellow-100 p-4 rounded-lg shadow-lg text-center">
           <h2 className="text-2xl font-semibold">Session Contacts Added</h2>
-          <p className="text-xl">{sessionContactsCount || 0}</p>
+          <p className="text-xl">{sessionContactsCount}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold">Add Contact</h2>
           <p>Click to add a new contact.</p>
@@ -145,23 +126,20 @@ const DashboardPage: React.FC = () => {
             Add Note
           </button>
         </div>
+        <div className="bg-white p-4 rounded-lg shadow-lg">
+          <h2 className="text-xl font-semibold">Latest Contact</h2>
+          <p>{latestContact || "No contact data available"}</p>
+        </div>
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Recent Activity</h2>
         <ul className="space-y-2">
           <li>✔️ Latest contact added: {latestContact || "N/A"}</li>
-          <li>✔️ {sessionContactsCount || 0} Contacts added this session</li>
-          <li>✔️ {sessionNotesCount || 0} Notes added this session </li>
+          <li>✔️ {sessionContactsCount} Contacts added this session</li>
+          <li>✔️ {sessionNotesCount} Notes added this session </li>
         </ul>
       </div>
-
-      <button
-        onClick={handleLogout}
-        className="mt-4 py-2 px-4 bg-red-600 text-white rounded-lg"
-      >
-        Logout
-      </button>
     </div>
   );
 };

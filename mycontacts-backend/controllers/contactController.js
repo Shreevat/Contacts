@@ -10,8 +10,6 @@ const getContacts = asyncHandler(async (req, res) => {
   res.status(200).json(contacts);
 });
 
-//////////////////////////////////////////////////////////
-
 //description: Create contact
 //route will be POST /api/contacts
 //acesss define. private
@@ -66,6 +64,7 @@ const updateContact = asyncHandler(async (req, res) => {
     req.body,
     { new: true } //return updated contact instead of old )
   );
+  
   res.status(200).json(updatedContact);
 });
 

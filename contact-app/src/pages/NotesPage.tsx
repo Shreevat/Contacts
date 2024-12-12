@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "../api/apiClient";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
+import axios from "../api/apiClient"; // Axios instance
 import Cookies from "js-cookie";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt, faEdit, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 
 interface Note {
   _id: string;
   title: string;
   content: string;
-  category: string;
-  date: string;
 }
 
 const NotesPage: React.FC = () => {
@@ -20,13 +16,18 @@ const NotesPage: React.FC = () => {
   const [newNote, setNewNote] = useState({
     title: "",
     content: "",
-    category: "Business",
   });
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null); // State for editing an existing note
+  const [showForm, setShowForm] = useState(false); // Toggle for add form
   const navigate = useNavigate();
+  const location = useLocation(); // Use location hook to access state
 
-  // Fetch notes on component mount
+  useEffect(() => {
+    if (location.state?.showForm) {
+      setShowForm(true); // If showForm is true in state, show the form
+    }
+  }, [location.state]);
+
   useEffect(() => {
     const fetchNotes = async () => {
       const token = Cookies.get("authToken");
@@ -56,19 +57,21 @@ const NotesPage: React.FC = () => {
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const response = await axios.post("/notes", newNote);
-      setNotes((prev) => [...prev, response.data]);
-      setShowForm(false);
-      setNewNote({ title: "", content: "", category: "Business" });
+      setNotes((prev) => [...prev, response.data]); // Add the new note to the list
+      setShowForm(false); // Hide the form
+      setNewNote({ title: "", content: "" }); // Reset the form
     } catch (err) {
       console.error("Error adding note:", err);
       setError("Failed to add note. Please try again.");
     }
   };
 
-  const handleEditNote = async (e: React.FormEvent) => {
+  const handleUpdateNote = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (editingNote) {
       try {
         const response = await axios.put(`/notes/${editingNote._id}`, newNote);
@@ -77,9 +80,9 @@ const NotesPage: React.FC = () => {
             note._id === editingNote._id ? response.data : note
           )
         );
-        setEditingNote(null);
-        setShowForm(false);
-        setNewNote({ title: "", content: "", category: "Business" });
+        setShowForm(false); // Hide the form after successful update
+        setNewNote({ title: "", content: "" }); // Reset form data
+        setEditingNote(null); // Clear editing state
       } catch (err) {
         console.error("Error updating note:", err);
         setError("Failed to update note. Please try again.");
@@ -97,23 +100,10 @@ const NotesPage: React.FC = () => {
     }
   };
 
-  const handleEditClick = (note: Note) => {
-    setEditingNote(note);
-    setNewNote({ title: note.title, content: note.content, category: note.category });
-    setShowForm(true);
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "Business":
-        return "bg-blue-500";
-      case "Home":
-        return "bg-green-500";
-      case "Personal":
-        return "bg-orange-500";
-      default:
-        return "bg-gray-500";
-    }
+  const handleEditNote = (note: Note) => {
+    setNewNote({ title: note.title, content: note.content }); // Pre-fill the form with note data
+    setEditingNote(note); // Set the note being edited
+    setShowForm(true); // Show the form
   };
 
   return (
@@ -137,17 +127,16 @@ const NotesPage: React.FC = () => {
             ) : (
               <button
                 onClick={() => setShowForm(true)}
-                className="py-2 px-4 bg-green-600 text-white rounded-lg flex items-center space-x-2"
+                className="py-2 px-4 bg-green-600 text-white rounded-lg"
               >
-                <FontAwesomeIcon icon={faPlusCircle} />
-                <span>Add New Note</span>
+                Add New Note
               </button>
             )}
           </div>
 
-          {(showForm && !editingNote) || (editingNote && showForm) ? (
+          {showForm && (
             <form
-              onSubmit={editingNote ? handleEditNote : handleAddNote}
+              onSubmit={editingNote ? handleUpdateNote : handleAddNote}
               className="space-y-4"
             >
               <input
@@ -169,17 +158,6 @@ const NotesPage: React.FC = () => {
                 className="border p-2 rounded w-full"
                 required
               />
-              <select
-                value={newNote.category}
-                onChange={(e) =>
-                  setNewNote({ ...newNote, category: e.target.value })
-                }
-                className="border p-2 rounded w-full"
-              >
-                <option value="Business">Business</option>
-                <option value="Home">Home</option>
-                <option value="Personal">Personal</option>
-              </select>
               <button
                 type="submit"
                 className="py-2 px-4 bg-blue-600 text-white rounded-lg"
@@ -187,7 +165,7 @@ const NotesPage: React.FC = () => {
                 {editingNote ? "Update Note" : "Save Note"}
               </button>
             </form>
-          ) : null}
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {notes.length > 0 ? (
@@ -196,33 +174,21 @@ const NotesPage: React.FC = () => {
                   key={note._id}
                   className="bg-white p-4 rounded-lg shadow-lg"
                 >
-                  <div className="flex items-center">
-                    <span
-                      className={`text-white text-sm py-1 px-2 rounded-full ${getCategoryColor(
-                        note.category
-                      )}`}
+                  <h2 className="text-xl font-semibold">{note.title}</h2>
+                  <p>{note.content}</p>
+                  <div className="flex justify-between mt-4">
+                    <button
+                      onClick={() => handleEditNote(note)}
+                      className="py-2 px-4 bg-blue-600 text-white rounded-lg"
                     >
-                      {note.category}
-                    </span>
-                  </div>
-                  <h2 className="text-xl font-semibold mt-2">{note.title}</h2>
-                  <p className="mt-2">{note.content}</p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-sm text-gray-500">{note.date}</span>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditClick(note)}
-                        className="text-gray-500"
-                      >
-                        <FontAwesomeIcon icon={faEdit} size="lg" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteNote(note._id.toString())}
-                        className="text-red-500"
-                      >
-                        <FontAwesomeIcon icon={faTrashAlt} size="lg" />
-                      </button>
-                    </div>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note._id)}
+                      className="py-2 px-4 bg-red-600 text-white rounded-lg"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))

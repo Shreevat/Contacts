@@ -6,7 +6,14 @@ const Sidebar: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // Remove the authentication token
     Cookies.remove("authToken");
+
+    // Remove session counts cookies
+    Cookies.remove("sessionContactsCount");
+    Cookies.remove("sessionNotesCount");
+
+    // Navigate to the login page and reload the window
     navigate("/login");
     window.location.reload();
   };

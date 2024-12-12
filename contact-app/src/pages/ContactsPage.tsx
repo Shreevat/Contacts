@@ -17,11 +17,12 @@ const ContactsPage: React.FC = () => {
   const [newContact, setNewContact] = useState({
     name: "",
     email: "",
-    phone: "",  
+    phone: "",
   });
+  const [editingContact, setEditingContact] = useState<Contact | null>(null); // State for editing an existing contact
   const [showForm, setShowForm] = useState(false); // Toggle for add form
   const navigate = useNavigate();
-  const location = useLocation(); // Use location hook to access state
+  const location = useLocation();
 
   useEffect(() => {
     if (location.state?.showForm) {
@@ -70,6 +71,27 @@ const ContactsPage: React.FC = () => {
     }
   };
 
+  const handleUpdateContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingContact) {
+      try {
+        const response = await axios.put(`/contacts/${editingContact._id}`, newContact);
+        setContacts((prev) =>
+          prev.map((contact) =>
+            contact._id === editingContact._id ? response.data : contact
+          )
+        );
+        setShowForm(false); // Hide the form after successful update
+        setNewContact({ name: "", email: "", phone: "" }); // Reset form data
+        setEditingContact(null); // Clear editing state
+      } catch (err) {
+        console.error("Error updating contact:", err);
+        setError("Failed to update contact. Please try again.");
+      }
+    }
+  };
+
   const handleDeleteContact = async (id: string) => {
     try {
       await axios.delete(`/contacts/${id}`);
@@ -78,6 +100,12 @@ const ContactsPage: React.FC = () => {
       console.error("Error deleting contact:", err);
       setError("Failed to delete contact. Please try again.");
     }
+  };
+
+  const handleEditContact = (contact: Contact) => {
+    setNewContact({ name: contact.name, email: contact.email, phone: contact.phone }); // Pre-fill the form with contact data
+    setEditingContact(contact); // Set the contact being edited
+    setShowForm(true); // Show the form
   };
 
   return (
@@ -109,7 +137,10 @@ const ContactsPage: React.FC = () => {
           </div>
 
           {showForm && (
-            <form onSubmit={handleAddContact} className="space-y-4">
+            <form
+              onSubmit={editingContact ? handleUpdateContact : handleAddContact}
+              className="space-y-4"
+            >
               <input
                 type="text"
                 placeholder="Name"
@@ -144,12 +175,12 @@ const ContactsPage: React.FC = () => {
                 type="submit"
                 className="py-2 px-4 bg-blue-600 text-white rounded-lg"
               >
-                Save Contact
+                {editingContact ? "Update Contact" : "Save Contact"}
               </button>
             </form>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1  gap-4">
             {contacts.length > 0 ? (
               contacts.map((contact) => (
                 <div
@@ -161,9 +192,10 @@ const ContactsPage: React.FC = () => {
                   <p>Phone: {contact.phone}</p>
                   <div className="flex justify-between mt-4">
                     <button
+                      onClick={() => handleEditContact(contact)}
                       className="py-2 px-4 bg-blue-600 text-white rounded-lg"
                     >
-                      View Details
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDeleteContact(contact._id)}
