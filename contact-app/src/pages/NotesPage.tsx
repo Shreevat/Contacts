@@ -217,7 +217,7 @@ const NotesPage: React.FC = () => {
                         <FontAwesomeIcon icon={faEdit} size="lg" />
                       </button>
                       <button
-                        onClick={() => handleDeleteNote(note._id)}
+                        onClick={() => handleDeleteNote(note._id.toString())}
                         className="text-red-500"
                       >
                         <FontAwesomeIcon icon={faTrashAlt} size="lg" />
